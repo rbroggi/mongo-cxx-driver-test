@@ -4,7 +4,7 @@ if(POLICY CMP0025)
     cmake_policy(SET CMP0025 NEW)
 endif()
 
-project(HELLO_WORLD LANGUAGES C CXX)
+project(mongo-test LANGUAGES C CXX)
 
 # Enforce the C++ standard, and disable extensions.
 if(NOT DEFINED CMAKE_CXX_STANDARD)
