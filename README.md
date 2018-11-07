@@ -28,7 +28,7 @@ To test the mongo-cxx-driver one must install the mongo-c-driver:
     
     d. configure the build procedure (cmake)  
     ```sh
-    cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DCMAKE_INSTALL_PREFIX=/Users/rodrigobroggi/Documents/Workspace/cpp/mongo/mongo-c-driver-1.13.0/install ..  
+    $ cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DCMAKE_INSTALL_PREFIX=/Users/rodrigobroggi/Documents/Workspace/cpp/mongo/mongo-c-driver-1.13.0/install ..  
     ```
     
     e. build (make)  
