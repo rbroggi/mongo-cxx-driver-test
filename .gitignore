@@ -5,4 +5,7 @@ cmake_install.cmake
 CMakeFiles/
 Makefile
 mongo_test
+aggregate
 *.cbp
+.DS_Store
+mongo_test.dSYM/

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <unordered_map>
 #include <memory>
 #include <thread>
@@ -12,6 +11,7 @@
 #include <mongocxx/client.hpp>
 #include <mongocxx/pool.hpp>
 #include <mongocxx/instance.hpp>
+#include <iostream>
 
 using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::stream::document;
@@ -73,26 +73,28 @@ int main(int, char**) {
     };
 
     //Delete all enties before begining
+    std::cout << "Delete all data before begining..." << std::endl;
     for (auto i : ids) {
         remove(ids_to_db[i], ids_to_collections[i], i);
     }
+    std::cout << "Data deleted." << std::endl;
 
 
     //Generation loop using separate threads
     std::vector<std::shared_ptr<std::thread>> threads{};
     for (auto i : ids) {
         document doc{};
-        doc << "id" << i
+        doc << "id" << bsoncxx::types::b_int32{i}
             << "name" << names[i-1];
+        std::cout << "View to insert into db: " << bsoncxx::to_json(doc.view()) << std::endl;
         std::shared_ptr<std::thread> runner =
                 std::make_shared<std::thread>(generator, ids_to_db[i], ids_to_collections[i], doc.view());
         threads.push_back(runner);
     }
 
-    std::cout << "Waiting for threads to finish..." << std::endl;
     //wait for threads to finish
+    std::cout << "Waiting for threads to finish..." << std::endl;
     for (auto t : threads) (*t).join();
-
     std::cout << "Threads finished..." << std::endl;
 
     //Retriving using single thread

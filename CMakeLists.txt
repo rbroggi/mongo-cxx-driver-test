@@ -26,35 +26,30 @@ message("LIBMONGOCXX_INCLUDE_DIRS: ${LIBMONGOCXX_INCLUDE_DIRS}")
 message("LIBMONGOCXX_LIBRARIES: ${LIBMONGOCXX_LIBRARIES}")
 message("LIBMONGOCXX_DEFINITIONS: ${LIBMONGOCXX_DEFINITIONS}")
 
-add_executable(mongo_test mongo_test.cpp)
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    find_package(Boost 1.56.0 REQUIRED)
-    target_include_directories(mongo_test
-      PRIVATE ${Boost_INCLUDE_DIRS}
-    )
-endif()
-
-target_include_directories(mongo_test
-  PRIVATE ${LIBBSONCXX_INCLUDE_DIRS}
-  PRIVATE ${LIBMONGOCXX_INCLUDE_DIRS}
+#Add here new executable files
+set(EXECUTABLES_SRC
+    mongo_test.cpp
+    aggregate.cpp
 )
 
-target_link_libraries(mongo_test
-  PRIVATE ${LIBBSONCXX_LIBRARIES}
-  PRIVATE ${LIBMONGOCXX_LIBRARIES}
-)
+foreach(EXECUTABLE_SRC ${EXECUTABLES_SRC})
+    get_filename_component(EXAMPLE_TARGET ${EXECUTABLE_SRC} NAME_WE)
+    add_executable(${EXAMPLE_TARGET} ${EXECUTABLE_SRC})
+    target_include_directories(${EXAMPLE_TARGET}
+            PRIVATE ${LIBBSONCXX_INCLUDE_DIRS}
+            PRIVATE ${LIBMONGOCXX_INCLUDE_DIRS}
+            )
+    target_link_libraries(${EXAMPLE_TARGET}
+            PRIVATE ${LIBBSONCXX_LIBRARIES}
+            PRIVATE ${LIBMONGOCXX_LIBRARIES}
+            )
+    target_compile_definitions(${EXAMPLE_TARGET}
+            PRIVATE ${LIBBSONCXX_DEFINITIONS}
+            PRIVATE ${LIBMONGOCXX_DEFINITIONS}
+            )
+    set(MONGOCXX_EXAMPLE_EXECUTABLES ${MONGOCXX_EXAMPLE_EXECUTABLES} ${EXAMPLE_TARGET})
+endforeach(EXECUTABLE_SRC)
 
-target_compile_definitions(mongo_test
-  PRIVATE ${LIBBSONCXX_DEFINITIONS}
-  PRIVATE ${LIBMONGOCXX_DEFINITIONS}
-)
-
-add_custom_target(run
-    COMMAND mongo_test
-    DEPENDS mongo_test
-    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
-)
 
 # Sanity-check that static library macros are not set when building against the shared library.
 # Users don't need to include this section in their projects.
