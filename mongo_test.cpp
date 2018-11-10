@@ -27,20 +27,20 @@ int main(int, char**) {
     //Create connection pool
     mongocxx::pool pool{mongocxx::uri{}};
 
-    //Define generator lambda generator - this lambda insert documents into the db and colection specified
-    auto generator = [&pool](const db_name db, const collection_name col, view view) {
+    //Define generator lambda - this lambda insert documents into the db and colection specified
+    auto generator = [&pool](const db_name db, const collection_name col, document&& doc) {
         auto client = pool.acquire();
         auto collection = (*client)[db][col];
-        collection.insert_one(view);
+        collection.insert_one(doc.view());
         std::cout << "Inserted into " << db << ":" << col << std::endl;
     };
 
     //Define lambda reader method
-    auto retrieve = [&pool](const db_name db, const collection_name col, const std::int64_t id, std::vector<view> & doc_views) {
+    auto retrieve = [&pool](const db_name db, const collection_name col, const std::int64_t id, std::vector<std::string>& json_rep) {
         auto client = pool.acquire();
         auto collection = (*client)[db][col];
         for (auto&& doc : collection.find(document{} << "id" << id << finalize) ) {
-            doc_views.push_back(doc);
+            json_rep.push_back(bsoncxx::to_json(doc));
         }
     };
 
@@ -88,8 +88,8 @@ int main(int, char**) {
             << "name" << names[i-1];
         std::cout << "View to insert into db: " << bsoncxx::to_json(doc.view()) << std::endl;
         std::shared_ptr<std::thread> runner =
-                std::make_shared<std::thread>(generator, ids_to_db[i], ids_to_collections[i], doc.view());
-        threads.push_back(runner);
+                std::make_shared<std::thread>(generator, ids_to_db[i], ids_to_collections[i], std::move(doc));
+        threads.push_back(std::move(runner));
     }
 
     //wait for threads to finish
@@ -99,8 +99,10 @@ int main(int, char**) {
 
     //Retriving using single thread
     for (auto i : ids) {
-        std::vector<view> doc_views{};
-        retrieve(ids_to_db[i], ids_to_collections[i], i, doc_views);
-        for (auto view : doc_views) std::cout << bsoncxx::to_json(view) << std::endl;
+        std::vector<std::string> json_vec;
+        retrieve(ids_to_db[i], ids_to_collections[i], i, json_vec);
+        for (auto& str : json_vec) {
+            std::cout<< str << std::endl;
+        }
     }
 }
