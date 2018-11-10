@@ -16,6 +16,7 @@
 using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::stream::document;
 using bsoncxx::document::view;
+using bsoncxx::document::value;
 using bsoncxx::builder::stream::finalize;
 
 typedef std::string db_name;
@@ -36,11 +37,11 @@ int main(int, char**) {
     };
 
     //Define lambda reader method
-    auto retrieve = [&pool](const db_name db, const collection_name col, const std::int64_t id, std::vector<std::string>& json_rep) {
+    auto retrieve = [&pool](const db_name db, const collection_name col, const std::int64_t id, std::vector<value>& json_rep) {
         auto client = pool.acquire();
         auto collection = (*client)[db][col];
         for (auto&& doc : collection.find(document{} << "id" << id << finalize) ) {
-            json_rep.push_back(bsoncxx::to_json(doc));
+            json_rep.push_back(value{doc});
         }
     };
 
@@ -99,10 +100,10 @@ int main(int, char**) {
 
     //Retriving using single thread
     for (auto i : ids) {
-        std::vector<std::string> json_vec;
+        std::vector<value> json_vec;
         retrieve(ids_to_db[i], ids_to_collections[i], i, json_vec);
-        for (auto& str : json_vec) {
-            std::cout<< str << std::endl;
+        for (auto& doc_value : json_vec) {
+            std::cout << bsoncxx::to_json(doc_value.view()) << std::endl;
         }
     }
 }
